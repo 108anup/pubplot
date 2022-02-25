@@ -76,7 +76,7 @@ def _read_doc_size_cache(force=False):
     return _cache_up_to_date == True
 
 
-def get_document_sizes(document_class):
+def get_document_sizes(document_class, usecache=False):
     """Get useful document sizes given a LaTeX document class.
 
     Args:
@@ -145,7 +145,7 @@ def get_document_sizes(document_class):
         - caption
     """
 
-    if(not _check_latex_installation()):
+    if(not _check_latex_installation() or usecache):
         if(_read_doc_size_cache()):
             if(document_class['sty_name'] in _cached_document_sizes):
                 return _cached_document_sizes[document_class['sty_name']]

@@ -43,6 +43,14 @@ class Document(object):
             may optionally contain a list of LaTeX packages under ``packages``
             as well as any other argument acceptable by ``pylatex.document``.
         style: dict following matplotlib rcParams convention.
+        usecache: if True, then fetch doc sizes from cache instead of
+            compiling latex document.
+        usetex: if True, then use latex to render figures created
+            using this document.
+        usepackages: if True, then use the packages as part of document_class
+            while using latex. This is only relevant if usetex is True. This
+            is used when the packages in the document_class are incompatible
+            with the way matplotlib generates pdfs.
 
     Attributes:
         style: dict following matplotlib rcParams convention.
@@ -104,8 +112,10 @@ class Document(object):
     FONT_OVERRIDES = ['font.size', 'axes.labelsize', 'legend.fontsize',
             'xtick.labelsize', 'ytick.labelsize']
 
-    def __init__(self, document_class, style=None):
-        sizes = get_document_sizes(document_class)
+    def __init__(self, document_class, style=None,
+                 usetex=True, usecache=False, usepackages=True):
+        self.usetex = usetex
+        sizes = get_document_sizes(document_class, usecache)
         self.__dict__.update(sizes)
 
         # check https://matplotlib.org/users/customizing.html for some options
@@ -126,7 +136,7 @@ class Document(object):
             'ytick.labelsize': self.caption,
         }
 
-        if(_check_latex_installation()):
+        if(_check_latex_installation() and usetex):
             # Only use tex if latex is installed
             self.style.update({
                 'pgf.texsystem': 'pdflatex',
@@ -142,7 +152,7 @@ class Document(object):
         if style is not None:
             self.update_style(style)
 
-        if(_check_latex_installation()):
+        if(_check_latex_installation() and usetex and usepackages):
             # document_class['packages'] is natively sent to pylatex, but we also
             # need matplotlib to be aware of them.
             preamble = self.style['pgf.preamble']
@@ -247,7 +257,7 @@ class Document(object):
                         'w_pad': mpl.rcParams['figure.subplot.wspace'],
                         'h_pad': mpl.rcParams['figure.subplot.hspace'],
                         })
-            fig = PubFigure(fig, self.style)
+            fig = PubFigure(fig, self.style, self.usetex)
         return fig
 
     def subfigures(self, nrows=1, ncols=1, width=None, height=None, scale=1,

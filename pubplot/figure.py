@@ -40,9 +40,10 @@ class PubFigure(RCParamWrapper):
         fig: A matplotlib Figure object.
     """
 
-    def __init__(self, fig, rc):
+    def __init__(self, fig, rc, usetex=True):
         super(PubFigure, self).__init__(fig, rc)
         self.fig = fig
+        self.usetex = usetex
 
     def add_subplot(self, *args, **kwargs):
         with mpl.rc_context(rc=self.rc.get_rc_to_function('')):
@@ -62,7 +63,7 @@ class PubFigure(RCParamWrapper):
         """
         kw = {'bbox_inches': bbox_inches, 'pad_inches': pad_inches}
         with mpl.rc_context(rc=self.rc.get_rc_to_function('save')):
-            if(_check_latex_installation()):
+            if(_check_latex_installation() and self.usetex):
                 canvas = FigureCanvasPgf(self.fig)
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
